@@ -55,9 +55,6 @@ jobs:
           azure_credentials: ${{ env.AZ_SECRET }}
           operation: start
 
-      - name: Wait for VM to be fully operational
-        run: sleep 60  # Allow time for VM startup; adjust if using slower VM sizes
-
       - name: Deallocate VM
         uses: ./
         with:
