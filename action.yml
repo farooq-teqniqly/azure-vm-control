@@ -19,38 +19,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Validate required inputs
-      shell: bash
-      run: |
-        missing_inputs=()
-
-        if [ -z "$INPUT_AZURE_RESOURCE_GROUP_NAME" ]; then
-            missing_inputs+=("azure_resource_group_name")
-        fi
-
-        if [ -z "$INPUT_AZURE_VM_NAME" ]; then
-            missing_inputs+=("azure_vm_name")
-        fi
-
-        if [ -z "$INPUT_AZURE_CREDENTIALS" ]; then
-            missing_inputs+=("azure_credentials")
-        fi
-
-        if [ ${#missing_inputs[@]} -ne 0 ]; then
-            echo "Missing required inputs: ${missing_inputs[*]}"
-            echo "Please configure these inputs in your repository settings."
-            exit 1
-        fi
-
-        op="$INPUT_OPERATION"
-
-        if [ "$op" != "start" ] && [ "$op" != "deallocate" ]; then
-          echo "operation must be 'start' or 'deallocate', got: $op"
-          exit 1
-        fi
-
-        echo "All required inputs are configured. Operation: $op"
-
     - name: Azure login
       uses: azure/login@8c334a195cbb38e46038007b304988d888bf676a
       with:
