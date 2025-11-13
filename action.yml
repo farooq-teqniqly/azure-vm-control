@@ -18,6 +18,11 @@ inputs:
 
 runs:
   using: "composite"
+  env:
+    INPUT_AZURE_RESOURCE_GROUP_NAME: ${{ inputs.azure_resource_group_name }}
+    INPUT_AZURE_VM_NAME: ${{ inputs.azure_vm_name }}
+    INPUT_AZURE_CREDENTIALS: ${{ inputs.azure_credentials }}
+    INPUT_OPERATION: ${{ inputs.operation }}
   steps:
     - name: Validate required inputs
       shell: bash
