@@ -315,7 +315,7 @@ The Azure service principal needs the following permissions:
 - **Reliable Operations**: Built-in validation and error handling
 - **State-Aware**: Checks current VM state before performing operations
 - **Secure**: Uses Azure's official authentication mechanisms
-- **Lightweight**: No external dependencies beyond Azure CLI
+- **Lightweight**: No external dependencies beyond Azure CLI and the official Azure Login action (azure/login)
 
 ## License
 

@@ -154,7 +154,7 @@ A brief description of what this project does and its primary value proposition.
 
 ### 10. Benefits Section
 
-**Purpose**: Clearly articulate value propositions
+**Purpose**: State value propositions concisely
 
 **Guidelines**:
 
