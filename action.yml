@@ -1,0 +1,93 @@
+name: "Azure VM Control"
+description: "A GitHub action that starts and stops Azure virtual machines. Useful for controlling virtual machines used as GitHub self-hosted runners."
+author: "Teqniqly"
+inputs:
+  azure_resource_group_name:
+    description: "Azure resource group containing the VM"
+    required: true
+  azure_vm_name:
+    description: "Name of the Azure VM"
+    required: true
+  azure_credentials:
+    description: "Azure credentials JSON for azure/login"
+    required: true
+  operation:
+    description: "VM operation to perform: start or deallocate"
+    required: false
+    default: "start"   # start | deallocate
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate required inputs
+      shell: bash
+      run: |
+        missing_inputs=()
+
+        if [ -z "${{inputs.azure_resource_group_name}}" ]; then
+            missing_inputs+=("azure_resource_group_name")
+        fi
+
+        if [ -z "${{inputs.azure_vm_name}}" ]; then
+            missing_inputs+=("azure_vm_name")
+        fi
+
+        if [ -z "${{inputs.azure_credentials}}" ]; then
+            missing_inputs+=("azure_credentials")
+        fi
+
+        if [ ${#missing_inputs[@]} -ne 0 ]; then
+            echo "Missing required inputs: ${missing_inputs[*]}"
+            echo "Please configure these inputs in your repository settings."
+            exit 1
+        fi
+
+        op="${{ inputs.operation }}"
+
+        if [ "$op" != "start" ] && [ "$op" != "deallocate" ]; then
+          echo "operation must be 'start' or 'deallocate', got: $op"
+          exit 1
+        fi
+
+        echo "All required inputs are configured. Operation: $op"
+
+    - name: Azure login
+      uses: azure/login@8c334a195cbb38e46038007b304988d888bf676a
+      with:
+        creds: ${{ inputs.azure_credentials }}
+
+    - name: Execute VM operation
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        RG="${{ inputs.azure_resource_group_name }}"
+        VM="${{ inputs.azure_vm_name }}"
+        OP="${{ inputs.operation }}"
+
+        echo "Resource group: $RG"
+        echo "VM name: $VM"
+        echo "Requested operation: $OP"
+
+        if [ "$OP" = "start" ]; then
+          echo "Checking current VM power state..."
+          state=$(az vm show -d -g "$RG" -n "$VM" --query powerState -o tsv 2>/dev/null || echo "unknown")
+          echo "Current state: $state"
+
+          if [ "$state" != "VM running" ]; then
+            echo "Starting VM..."
+            az vm start -g "$RG" -n "$VM"
+          else
+            echo "VM already running."
+          fi
+        elif [ "$OP" = "deallocate" ]; then
+          echo "Deallocating VM..."
+          az vm deallocate -g "$RG" -n "$VM"
+        fi
+
+        echo "Final power state:"
+        az vm get-instance-view \
+          -g "$RG" \
+          -n "$VM" \
+          --query "instanceView.statuses[?starts_with(code,'PowerState/')].displayStatus" \
+          -o tsv
