@@ -25,6 +25,10 @@ runs:
         creds: ${{ inputs.azure_credentials }}
 
     - name: Execute VM operation
+      env:
+        INPUT_AZURE_RESOURCE_GROUP_NAME: ${{ inputs.azure_resource_group_name }}
+        INPUT_AZURE_VM_NAME: ${{ inputs.azure_vm_name }}
+        INPUT_OPERATION: ${{ inputs.operation }}
       shell: bash
       run: |
         set -euo pipefail
