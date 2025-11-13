@@ -294,7 +294,7 @@ jobs:
 | `azure_resource_group_name` | Azure resource group containing the VM | Yes | - |
 | `azure_vm_name` | Name of the Azure Virtual Machine | Yes | - |
 | `azure_credentials` | Azure service principal credentials JSON | Yes | - |
-| `operation` | VM operation: `start` or `deallocate` | No | `start` |
+| `operation` | VM operation: `start` or `deallocate` (blocking operations that wait for completion) | No | `start` |
 
 ### Outputs
 
