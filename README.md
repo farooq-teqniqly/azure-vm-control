@@ -2,6 +2,10 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Azure%20VM%20Control-blue.svg)](https://github.com/marketplace/actions/azure-vm-control)
+[![Integration](https://github.com/farooq-teqniqly/azure-vm-control/actions/workflows/integration.yml/badge.svg)](https://github.com/farooq-teqniqly/azure-vm-control/actions/workflows/integration.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=farooq-teqniqly_azure-vm-control&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=farooq-teqniqly_azure-vm-control)
+
+
 
 A GitHub Action that automates starting and stopping Azure Virtual Machines, designed specifically for managing self-hosted runners in CI/CD pipelines.
 
