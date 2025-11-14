@@ -1,5 +1,8 @@
 name: "Azure VM Control"
 description: "A GitHub action that starts and stops Azure virtual machines."
+branding:
+  icon: power-off
+  color: blue
 author: "Teqniqly"
 inputs:
   azure_resource_group_name:
