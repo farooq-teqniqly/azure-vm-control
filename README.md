@@ -214,7 +214,9 @@ jobs:
   with:
     azure_resource_group_name: 'my-runners-rg'
     azure_vm_name: 'github-runner-01'
-    azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     operation: 'start'  # This is the default
 ```
 
@@ -226,7 +228,9 @@ jobs:
   with:
     azure_resource_group_name: 'my-runners-rg'
     azure_vm_name: 'github-runner-01'
-    azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     operation: 'deallocate'
 ```
 
@@ -243,7 +247,9 @@ Control VMs based on workflow conditions:
   with:
     azure_resource_group_name: 'prod-runners'
     azure_vm_name: 'deployment-runner'
-    azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     operation: 'start'
 
 - name: Stop VM after deployment
@@ -252,7 +258,9 @@ Control VMs based on workflow conditions:
   with:
     azure_resource_group_name: 'prod-runners'
     azure_vm_name: 'deployment-runner'
-    azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     operation: 'deallocate'
 ```
 
@@ -266,14 +274,18 @@ Manage multiple VMs in a single workflow:
   with:
     azure_resource_group_name: 'runners-rg'
     azure_vm_name: 'runner-01'
-    azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
 - name: Start second VM
   uses: farooq-teqniqly/azure-vm-control@v1
   with:
     azure_resource_group_name: 'runners-rg'
     azure_vm_name: 'runner-02'
-    azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 ```
 
 ## Examples
@@ -285,6 +297,10 @@ A complete workflow that starts a VM, runs jobs on it, then deallocates it:
 ```yaml
 name: CI with Self-Hosted Runner
 on: [push, pull_request]
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
 
 jobs:
   start-runner:
@@ -298,7 +314,9 @@ jobs:
         with:
           azure_resource_group_name: 'github-runners'
           azure_vm_name: 'ubuntu-runner'
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: 'start'
 
   test:
@@ -322,7 +340,9 @@ jobs:
         with:
           azure_resource_group_name: 'github-runners'
           azure_vm_name: 'ubuntu-runner'
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: 'deallocate'
 ```
 
@@ -337,6 +357,10 @@ on:
     - cron: '0 9 * * 1-5'  # Start at 9 AM weekdays
     - cron: '0 18 * * 1-5' # Stop at 6 PM weekdays
 
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   control-vm:
     runs-on: ubuntu-latest
@@ -346,7 +370,9 @@ jobs:
         with:
           azure_resource_group_name: 'office-hours-runners'
           azure_vm_name: 'dev-runner'
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: ${{ github.event.schedule == '0 9 * * 1-5' && 'start' || 'deallocate' }}
 ```
 
@@ -363,6 +389,10 @@ Example workflow pattern:
 name: Performance Tests
 on: [workflow_dispatch]
 
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -372,7 +402,9 @@ jobs:
         with:
           azure_resource_group_name: 'perf-test-rg'
           azure_vm_name: 'perf-runner'
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: 'start'
 
   run-tests:
@@ -393,7 +425,9 @@ jobs:
         with:
           azure_resource_group_name: 'perf-test-rg'
           azure_vm_name: 'perf-runner'
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: 'deallocate'
 ```
 
