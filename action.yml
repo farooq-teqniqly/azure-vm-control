@@ -12,8 +12,17 @@ inputs:
     description: "Name of the Azure VM"
     required: true
   azure_credentials:
-    description: "Azure credentials JSON for azure/login"
-    required: true
+    description: "Azure credentials JSON for azure/login (for credential-based auth). Either this or OIDC inputs (client_id, tenant_id, subscription_id) must be provided."
+    required: false
+  client_id:
+    description: "Azure client ID for OIDC authentication"
+    required: false
+  tenant_id:
+    description: "Azure tenant ID for OIDC authentication"
+    required: false
+  subscription_id:
+    description: "Azure subscription ID for OIDC authentication"
+    required: false
   operation:
     description: "VM operation to perform: start or deallocate"
     required: false
@@ -22,7 +31,44 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Azure login
+    - name: Validate authentication inputs
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        # Check if OIDC inputs are provided
+        OIDC_INPUTS_PROVIDED="false"
+        if [ -n "${{ inputs.client_id }}" ] && [ -n "${{ inputs.tenant_id }}" ] && [ -n "${{ inputs.subscription_id }}" ]; then
+          OIDC_INPUTS_PROVIDED="true"
+        fi
+
+        # Check if credentials input is provided
+        CREDS_PROVIDED="false"
+        if [ -n "${{ inputs.azure_credentials }}" ]; then
+          CREDS_PROVIDED="true"
+        fi
+
+        # Validate that at least one authentication method is provided
+        if [ "$OIDC_INPUTS_PROVIDED" = "false" ] && [ "$CREDS_PROVIDED" = "false" ]; then
+          echo "Error: Either azure_credentials or OIDC inputs (client_id, tenant_id, subscription_id) must be provided."
+          exit 1
+        fi
+
+        # Warn if both are provided (OIDC takes precedence)
+        if [ "$OIDC_INPUTS_PROVIDED" = "true" ] && [ "$CREDS_PROVIDED" = "true" ]; then
+          echo "Warning: Both OIDC inputs and azure_credentials provided. OIDC authentication will be used."
+        fi
+
+    - name: Azure login with OIDC
+      if: ${{ inputs.client_id != '' && inputs.tenant_id != '' && inputs.subscription_id != '' }}
+      uses: azure/login@8c334a195cbb38e46038007b304988d888bf676a
+      with:
+        client-id: ${{ inputs.client_id }}
+        tenant-id: ${{ inputs.tenant_id }}
+        subscription-id: ${{ inputs.subscription_id }}
+
+    - name: Azure login with credentials
+      if: ${{ inputs.azure_credentials != '' && (inputs.client_id == '' || inputs.tenant_id == '' || inputs.subscription_id == '') }}
       uses: azure/login@8c334a195cbb38e46038007b304988d888bf676a
       with:
         creds: ${{ inputs.azure_credentials }}

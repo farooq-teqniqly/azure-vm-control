@@ -32,6 +32,22 @@ Managing Azure Virtual Machines (VMs) used as GitHub self-hosted runners can be 
 
 Azure VM Control provides a simple, reliable way to start and deallocate Azure VMs directly from your GitHub workflows. It handles authentication, validation, and state checking automatically.
 
+**Using OIDC Authentication (Recommended):**
+
+```yaml
+- name: Start VM Runner
+  uses: farooq-teqniqly/azure-vm-control@v1
+  with:
+    azure_resource_group_name: 'my-resource-group'
+    azure_vm_name: 'my-runner-vm'
+    client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    operation: 'start'
+```
+
+**Using Credential-based Authentication:**
+
 ```yaml
 - name: Start VM Runner
   uses: farooq-teqniqly/azure-vm-control@v1
@@ -47,12 +63,60 @@ Azure VM Control provides a simple, reliable way to start and deallocate Azure V
 ### Prerequisites
 
 - An Azure subscription with a Virtual Machine
-- Azure service principal credentials with VM management permissions
+- Azure service principal with VM management permissions
+- For OIDC auth: Federated credentials configured for your GitHub repository
+- For credential-based auth: Service principal credentials JSON
 - GitHub repository with secrets configured
 
-#### Azure Service Principal Setup
+#### Azure Authentication Setup
 
-Create a service principal with the necessary permissions for VM management. This action currently supports the non-OIDC authentication method.
+This action supports two authentication methods:
+
+1. **OIDC Authentication (Recommended)** - Uses OpenID Connect for passwordless authentication
+2. **Credential-based Authentication** - Uses Azure service principal credentials JSON
+
+##### OIDC Authentication (Recommended)
+
+OIDC authentication is more secure as it doesn't require storing long-lived credentials.
+
+**Step 1: Create a service principal and configure federated credentials**
+
+```bash
+# Create a service principal (without credentials)
+az ad sp create-for-rbac --name SERVICE_PRINCIPAL_NAME --role "Virtual Machine Contributor" --scopes /subscriptions/SUBSCRIPTION_ID/resourceGroups/RESOURCE_GROUP_NAME --create-cert=false
+```
+
+**Step 2: Configure federated credentials for GitHub Actions**
+
+In the Azure Portal:
+1. Navigate to Azure Active Directory > App registrations
+2. Find your service principal and select it
+3. Go to "Certificates & secrets" > "Federated credentials"
+4. Click "Add credential"
+5. Select "GitHub Actions deploying Azure resources"
+6. Configure:
+   - Organization: Your GitHub organization or username
+   - Repository: Your repository name
+   - Entity type: Branch, Pull request, Environment, or Tag
+   - GitHub branch name: main (or your branch)
+   - Name: A descriptive name for the credential
+
+**Step 3: Store the following as GitHub secrets:**
+- `AZURE_CLIENT_ID` - Application (client) ID
+- `AZURE_TENANT_ID` - Directory (tenant) ID
+- `AZURE_SUBSCRIPTION_ID` - Your Azure subscription ID
+
+**Step 4: Add required permissions to your workflow:**
+
+```yaml
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+```
+
+##### Credential-based Authentication
+
+Create a service principal with the necessary permissions for VM management.
 
 **Using PowerShell:**
 
@@ -79,6 +143,32 @@ The `--sdk-auth` flag outputs the credentials in the JSON format required by the
 ### Installation
 
 Add this action to your GitHub workflow YAML file:
+
+**Using OIDC Authentication (Recommended):**
+
+```yaml
+name: Control Azure VM
+on: [workflow_dispatch]
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
+jobs:
+  control-vm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Control VM
+        uses: farooq-teqniqly/azure-vm-control@v1
+        with:
+          azure_resource_group_name: 'your-resource-group'
+          azure_vm_name: 'your-vm-name'
+          client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+```
+
+**Using Credential-based Authentication:**
 
 ```yaml
 name: Control Azure VM
@@ -297,8 +387,13 @@ jobs:
 |-------|-------------|----------|---------|
 | `azure_resource_group_name` | Azure resource group containing the VM | Yes | - |
 | `azure_vm_name` | Name of the Azure Virtual Machine | Yes | - |
-| `azure_credentials` | Azure service principal credentials JSON | Yes | - |
+| `azure_credentials` | Azure service principal credentials JSON (for credential-based auth) | No* | - |
+| `client_id` | Azure client ID for OIDC authentication | No* | - |
+| `tenant_id` | Azure tenant ID for OIDC authentication | No* | - |
+| `subscription_id` | Azure subscription ID for OIDC authentication | No* | - |
 | `operation` | VM operation: `start` or `deallocate` (blocking operations that wait for completion; may take several minutes with no configurable timeout) | No | `start` |
+
+*Either `azure_credentials` or all three OIDC inputs (`client_id`, `tenant_id`, `subscription_id`) must be provided.
 
 ### Outputs
 
