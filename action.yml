@@ -32,19 +32,24 @@ runs:
   using: "composite"
   steps:
     - name: Validate authentication inputs
+      env:
+        INPUT_CLIENT_ID: ${{ inputs.client_id }}
+        INPUT_TENANT_ID: ${{ inputs.tenant_id }}
+        INPUT_SUBSCRIPTION_ID: ${{ inputs.subscription_id }}
+        INPUT_AZURE_CREDENTIALS: ${{ inputs.azure_credentials }}
       shell: bash
       run: |
         set -euo pipefail
 
         # Check if OIDC inputs are provided
         OIDC_INPUTS_PROVIDED="false"
-        if [ -n "${{ inputs.client_id }}" ] && [ -n "${{ inputs.tenant_id }}" ] && [ -n "${{ inputs.subscription_id }}" ]; then
+        if [ -n "$INPUT_CLIENT_ID" ] && [ -n "$INPUT_TENANT_ID" ] && [ -n "$INPUT_SUBSCRIPTION_ID" ]; then
           OIDC_INPUTS_PROVIDED="true"
         fi
 
         # Check if credentials input is provided
         CREDS_PROVIDED="false"
-        if [ -n "${{ inputs.azure_credentials }}" ]; then
+        if [ -n "$INPUT_AZURE_CREDENTIALS" ]; then
           CREDS_PROVIDED="true"
         fi
 
