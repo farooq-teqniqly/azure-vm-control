@@ -32,6 +32,7 @@ runs:
   using: "composite"
   steps:
     - name: Validate authentication inputs
+      id: auth-check
       env:
         INPUT_CLIENT_ID: ${{ inputs.client_id }}
         INPUT_TENANT_ID: ${{ inputs.tenant_id }}
@@ -53,6 +54,10 @@ runs:
           CREDS_PROVIDED="true"
         fi
 
+        # Export as step outputs for use in subsequent step conditions
+        echo "oidc=$OIDC_INPUTS_PROVIDED" >> $GITHUB_OUTPUT
+        echo "creds=$CREDS_PROVIDED" >> $GITHUB_OUTPUT
+
         # Validate that at least one authentication method is provided
         if [ "$OIDC_INPUTS_PROVIDED" = "false" ] && [ "$CREDS_PROVIDED" = "false" ]; then
           echo "Error: Either azure_credentials or OIDC inputs (client_id, tenant_id, subscription_id) must be provided."
@@ -65,7 +70,7 @@ runs:
         fi
 
     - name: Azure login with OIDC
-      if: ${{ inputs.client_id != '' && inputs.tenant_id != '' && inputs.subscription_id != '' }}
+      if: ${{ steps.auth-check.outputs.oidc == 'true' }}
       uses: azure/login@8c334a195cbb38e46038007b304988d888bf676a
       with:
         client-id: ${{ inputs.client_id }}
@@ -73,7 +78,7 @@ runs:
         subscription-id: ${{ inputs.subscription_id }}
 
     - name: Azure login with credentials
-      if: ${{ inputs.azure_credentials != '' && (inputs.client_id == '' || inputs.tenant_id == '' || inputs.subscription_id == '') }}
+      if: ${{ steps.auth-check.outputs.oidc != 'true' && steps.auth-check.outputs.creds == 'true' }}
       uses: azure/login@8c334a195cbb38e46038007b304988d888bf676a
       with:
         creds: ${{ inputs.azure_credentials }}
