@@ -90,18 +90,34 @@ az ad sp create-for-rbac --name SERVICE_PRINCIPAL_NAME --role "Virtual Machine C
 
 **Step 2: Configure federated credentials for GitHub Actions**
 
-In the Azure Portal:
+Replace the placeholder values and run the following Azure CLI command:
+
+```bash
+# Get the object ID of the service principal
+APP_OBJECT_ID=$(az ad app list --display-name SERVICE_PRINCIPAL_NAME --query "[0].id" -o tsv)
+
+# Create federated credential for GitHub Actions
+az ad app federated-credential create --id $APP_OBJECT_ID --parameters '{
+  "name": "github-actions-credential",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:GITHUB_ORG/GITHUB_REPO:ref:refs/heads/main",
+  "audiences": ["api://AzureADTokenExchange"]
+}'
+```
+
+> **Note:** Adjust the `subject` field based on your scenario:
+> - For a specific branch: `repo:OWNER/REPO:ref:refs/heads/BRANCH`
+> - For pull requests: `repo:OWNER/REPO:pull_request`
+> - For an environment: `repo:OWNER/REPO:environment:ENVIRONMENT_NAME`
+> - For any branch: `repo:OWNER/REPO:ref:refs/heads/*`
+
+Alternatively, you can configure this in the Azure Portal:
 1. Navigate to Azure Active Directory > App registrations
 2. Find your service principal and select it
 3. Go to "Certificates & secrets" > "Federated credentials"
 4. Click "Add credential"
 5. Select "GitHub Actions deploying Azure resources"
-6. Configure:
-   - Organization: Your GitHub organization or username
-   - Repository: Your repository name
-   - Entity type: Branch, Pull request, Environment, or Tag
-   - GitHub branch name: main (or your branch)
-   - Name: A descriptive name for the credential
+6. Configure the organization, repository, entity type, and branch name
 
 **Step 3: Store the following as GitHub secrets:**
 - `AZURE_CLIENT_ID` - Application (client) ID
