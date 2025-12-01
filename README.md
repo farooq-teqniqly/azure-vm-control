@@ -81,6 +81,8 @@ OIDC authentication is more secure as it doesn't require storing long-lived cred
 
 **Step 1: Create a service principal and configure federated credentials**
 
+Replace the placeholder values with your actual Azure resource names:
+
 ```bash
 # Create a service principal (without credentials)
 az ad sp create-for-rbac --name SERVICE_PRINCIPAL_NAME --role "Virtual Machine Contributor" --scopes /subscriptions/SUBSCRIPTION_ID/resourceGroups/RESOURCE_GROUP_NAME --create-cert=false
