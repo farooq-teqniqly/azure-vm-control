@@ -67,9 +67,9 @@ jobs:
         with:
           azure_resource_group_name: ${{ env.AZ_RG }}
           azure_vm_name: ${{ env.AZ_VM }}
-          client_id: ${{ env.AZ_CLIENT_ID }}
-          tenant_id: ${{ env.AZ_TENANT_ID }}
-          subscription_id: ${{ env.AZ_SUBSCRIPTION_ID }}
+          azure_client_id: ${{ env.AZ_CLIENT_ID }}
+          azure_tenant_id: ${{ env.AZ_TENANT_ID }}
+          azure_subscription_id: ${{ env.AZ_SUBSCRIPTION_ID }}
           operation: start
 
       - name: Deallocate VM
@@ -77,9 +77,9 @@ jobs:
         with:
           azure_resource_group_name: ${{ env.AZ_RG }}
           azure_vm_name: ${{ env.AZ_VM }}
-          client_id: ${{ env.AZ_CLIENT_ID }}
-          tenant_id: ${{ env.AZ_TENANT_ID }}
-          subscription_id: ${{ env.AZ_SUBSCRIPTION_ID }}
+          azure_client_id: ${{ env.AZ_CLIENT_ID }}
+          azure_tenant_id: ${{ env.AZ_TENANT_ID }}
+          azure_subscription_id: ${{ env.AZ_SUBSCRIPTION_ID }}
           operation: deallocate
 
       - name: Verify VM is deallocated

@@ -40,9 +40,9 @@ Azure VM Control provides a simple, reliable way to start and deallocate Azure V
   with:
     azure_resource_group_name: 'my-resource-group'
     azure_vm_name: 'my-runner-vm'
-    client_id: ${{ secrets.AZURE_CLIENT_ID }}
-    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     operation: 'start'
 ```
 
@@ -181,9 +181,9 @@ jobs:
         with:
           azure_resource_group_name: 'your-resource-group'
           azure_vm_name: 'your-vm-name'
-          client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 ```
 
 **Using Credential-based Authentication:**
@@ -214,9 +214,9 @@ jobs:
   with:
     azure_resource_group_name: 'my-runners-rg'
     azure_vm_name: 'github-runner-01'
-    client_id: ${{ secrets.AZURE_CLIENT_ID }}
-    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     operation: 'start'  # This is the default
 ```
 
@@ -228,9 +228,9 @@ jobs:
   with:
     azure_resource_group_name: 'my-runners-rg'
     azure_vm_name: 'github-runner-01'
-    client_id: ${{ secrets.AZURE_CLIENT_ID }}
-    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     operation: 'deallocate'
 ```
 
@@ -247,9 +247,9 @@ Control VMs based on workflow conditions:
   with:
     azure_resource_group_name: 'prod-runners'
     azure_vm_name: 'deployment-runner'
-    client_id: ${{ secrets.AZURE_CLIENT_ID }}
-    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     operation: 'start'
 
 - name: Stop VM after deployment
@@ -258,9 +258,9 @@ Control VMs based on workflow conditions:
   with:
     azure_resource_group_name: 'prod-runners'
     azure_vm_name: 'deployment-runner'
-    client_id: ${{ secrets.AZURE_CLIENT_ID }}
-    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     operation: 'deallocate'
 ```
 
@@ -274,18 +274,18 @@ Manage multiple VMs in a single workflow:
   with:
     azure_resource_group_name: 'runners-rg'
     azure_vm_name: 'runner-01'
-    client_id: ${{ secrets.AZURE_CLIENT_ID }}
-    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
 - name: Start second VM
   uses: farooq-teqniqly/azure-vm-control@v1
   with:
     azure_resource_group_name: 'runners-rg'
     azure_vm_name: 'runner-02'
-    client_id: ${{ secrets.AZURE_CLIENT_ID }}
-    tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-    subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 ```
 
 ## Examples
@@ -314,9 +314,9 @@ jobs:
         with:
           azure_resource_group_name: 'github-runners'
           azure_vm_name: 'ubuntu-runner'
-          client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: 'start'
 
   test:
@@ -340,9 +340,9 @@ jobs:
         with:
           azure_resource_group_name: 'github-runners'
           azure_vm_name: 'ubuntu-runner'
-          client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: 'deallocate'
 ```
 
@@ -370,9 +370,9 @@ jobs:
         with:
           azure_resource_group_name: 'office-hours-runners'
           azure_vm_name: 'dev-runner'
-          client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: ${{ github.event.schedule == '0 9 * * 1-5' && 'start' || 'deallocate' }}
 ```
 
@@ -402,9 +402,9 @@ jobs:
         with:
           azure_resource_group_name: 'perf-test-rg'
           azure_vm_name: 'perf-runner'
-          client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: 'start'
 
   run-tests:
@@ -425,9 +425,9 @@ jobs:
         with:
           azure_resource_group_name: 'perf-test-rg'
           azure_vm_name: 'perf-runner'
-          client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: 'deallocate'
 ```
 
@@ -440,12 +440,12 @@ jobs:
 | `azure_resource_group_name` | Azure resource group containing the VM | Yes | - |
 | `azure_vm_name` | Name of the Azure Virtual Machine | Yes | - |
 | `azure_credentials` | Azure service principal credentials JSON (for credential-based auth) | No* | - |
-| `client_id` | Azure client ID for OIDC authentication | No* | - |
-| `tenant_id` | Azure tenant ID for OIDC authentication | No* | - |
-| `subscription_id` | Azure subscription ID for OIDC authentication | No* | - |
+| `azure_client_id` | Azure client ID for OIDC authentication | No* | - |
+| `azure_tenant_id` | Azure tenant ID for OIDC authentication | No* | - |
+| `azure_subscription_id` | Azure subscription ID for OIDC authentication | No* | - |
 | `operation` | VM operation: `start` or `deallocate` (blocking operations that wait for completion; may take several minutes with no configurable timeout) | No | `start` |
 
-*Either `azure_credentials` or all three OIDC inputs (`client_id`, `tenant_id`, `subscription_id`) must be provided.
+*Either `azure_credentials` or all three OIDC inputs (`azure_client_id`, `azure_tenant_id`, `azure_subscription_id`) must be provided.
 
 ### Outputs
 

@@ -12,15 +12,15 @@ inputs:
     description: "Name of the Azure VM"
     required: true
   azure_credentials:
-    description: "Azure credentials JSON for azure/login (for credential-based auth). Either this or OIDC inputs (client_id, tenant_id, subscription_id) must be provided."
+    description: "Azure credentials JSON for azure/login (for credential-based auth). Either this or OIDC inputs (azure_client_id, azure_tenant_id, azure_subscription_id) must be provided."
     required: false
-  client_id:
+  azure_client_id:
     description: "Azure client ID for OIDC authentication"
     required: false
-  tenant_id:
+  azure_tenant_id:
     description: "Azure tenant ID for OIDC authentication"
     required: false
-  subscription_id:
+  azure_subscription_id:
     description: "Azure subscription ID for OIDC authentication"
     required: false
   operation:
@@ -34,9 +34,9 @@ runs:
     - name: Validate authentication inputs
       id: auth-check
       env:
-        INPUT_CLIENT_ID: ${{ inputs.client_id }}
-        INPUT_TENANT_ID: ${{ inputs.tenant_id }}
-        INPUT_SUBSCRIPTION_ID: ${{ inputs.subscription_id }}
+        INPUT_CLIENT_ID: ${{ inputs.azure_client_id }}
+        INPUT_TENANT_ID: ${{ inputs.azure_tenant_id }}
+        INPUT_SUBSCRIPTION_ID: ${{ inputs.azure_subscription_id }}
         INPUT_AZURE_CREDENTIALS: ${{ inputs.azure_credentials }}
       shell: bash
       run: |
@@ -60,7 +60,7 @@ runs:
 
         # Validate that at least one authentication method is provided
         if [ "$OIDC_INPUTS_PROVIDED" = "false" ] && [ "$CREDS_PROVIDED" = "false" ]; then
-          echo "Error: Either azure_credentials or OIDC inputs (client_id, tenant_id, subscription_id) must be provided."
+          echo "Error: Either azure_credentials or OIDC inputs (azure_client_id, azure_tenant_id, azure_subscription_id) must be provided."
           exit 1
         fi
 
@@ -73,9 +73,9 @@ runs:
       if: ${{ steps.auth-check.outputs.oidc == 'true' }}
       uses: azure/login@8c334a195cbb38e46038007b304988d888bf676a
       with:
-        client-id: ${{ inputs.client_id }}
-        tenant-id: ${{ inputs.tenant_id }}
-        subscription-id: ${{ inputs.subscription_id }}
+        client-id: ${{ inputs.azure_client_id }}
+        tenant-id: ${{ inputs.azure_tenant_id }}
+        subscription-id: ${{ inputs.azure_subscription_id }}
 
     - name: Azure login with credentials
       if: ${{ steps.auth-check.outputs.oidc != 'true' && steps.auth-check.outputs.creds == 'true' }}
