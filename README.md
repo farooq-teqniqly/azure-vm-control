@@ -32,6 +32,22 @@ Managing Azure Virtual Machines (VMs) used as GitHub self-hosted runners can be 
 
 Azure VM Control provides a simple, reliable way to start and deallocate Azure VMs directly from your GitHub workflows. It handles authentication, validation, and state checking automatically.
 
+**Using OIDC Authentication (Recommended):**
+
+```yaml
+- name: Start VM Runner
+  uses: farooq-teqniqly/azure-vm-control@v1
+  with:
+    azure_resource_group_name: 'my-resource-group'
+    azure_vm_name: 'my-runner-vm'
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    operation: 'start'
+```
+
+**Using Credential-based Authentication:**
+
 ```yaml
 - name: Start VM Runner
   uses: farooq-teqniqly/azure-vm-control@v1
@@ -47,12 +63,78 @@ Azure VM Control provides a simple, reliable way to start and deallocate Azure V
 ### Prerequisites
 
 - An Azure subscription with a Virtual Machine
-- Azure service principal credentials with VM management permissions
+- Azure service principal with VM management permissions
+- For OIDC auth: Federated credentials configured for your GitHub repository
+- For credential-based auth: Service principal credentials JSON
 - GitHub repository with secrets configured
 
-#### Azure Service Principal Setup
+#### Azure Authentication Setup
 
-Create a service principal with the necessary permissions for VM management. This action currently supports the non-OIDC authentication method.
+This action supports two authentication methods:
+
+1. **OIDC Authentication (Recommended)** - Uses OpenID Connect for passwordless authentication
+2. **Credential-based Authentication** - Uses Azure service principal credentials JSON
+
+##### OIDC Authentication (Recommended)
+
+OIDC authentication is more secure as it doesn't require storing long-lived credentials.
+
+**Step 1: Create a service principal and configure federated credentials**
+
+Replace the placeholder values with your actual Azure resource names:
+
+```bash
+# Create a service principal (without credentials)
+az ad sp create-for-rbac --name SERVICE_PRINCIPAL_NAME --role "Virtual Machine Contributor" --scopes /subscriptions/SUBSCRIPTION_ID/resourceGroups/RESOURCE_GROUP_NAME --create-cert=false
+```
+
+**Step 2: Configure federated credentials for GitHub Actions**
+
+Replace the placeholder values and run the following Azure CLI command:
+
+```bash
+# Get the object ID of the service principal
+APP_OBJECT_ID=$(az ad app list --display-name SERVICE_PRINCIPAL_NAME --query "[0].id" -o tsv)
+
+# Create federated credential for GitHub Actions
+az ad app federated-credential create --id $APP_OBJECT_ID --parameters '{
+  "name": "github-actions-credential",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:GITHUB_ORG/GITHUB_REPO:ref:refs/heads/main",
+  "audiences": ["api://AzureADTokenExchange"]
+}'
+```
+
+> **Note:** Adjust the `subject` field based on your scenario:
+> - For a specific branch: `repo:OWNER/REPO:ref:refs/heads/BRANCH`
+> - For pull requests: `repo:OWNER/REPO:pull_request`
+> - For an environment: `repo:OWNER/REPO:environment:ENVIRONMENT_NAME`
+> - For any branch: `repo:OWNER/REPO:ref:refs/heads/*`
+
+Alternatively, you can configure this in the Azure Portal:
+1. Navigate to Azure Active Directory > App registrations
+2. Find your service principal and select it
+3. Go to "Certificates & secrets" > "Federated credentials"
+4. Click "Add credential"
+5. Select "GitHub Actions deploying Azure resources"
+6. Configure the organization, repository, entity type, and branch name
+
+**Step 3: Store the following as GitHub secrets:**
+- `AZURE_CLIENT_ID` - Application (client) ID
+- `AZURE_TENANT_ID` - Directory (tenant) ID
+- `AZURE_SUBSCRIPTION_ID` - Your Azure subscription ID
+
+**Step 4: Add required permissions to your workflow:**
+
+```yaml
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+```
+
+##### Credential-based Authentication
+
+Create a service principal with the necessary permissions for VM management.
 
 **Using PowerShell:**
 
@@ -80,6 +162,32 @@ The `--sdk-auth` flag outputs the credentials in the JSON format required by the
 
 Add this action to your GitHub workflow YAML file:
 
+**Using OIDC Authentication (Recommended):**
+
+```yaml
+name: Control Azure VM
+on: [workflow_dispatch]
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
+jobs:
+  control-vm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Control VM
+        uses: farooq-teqniqly/azure-vm-control@v1
+        with:
+          azure_resource_group_name: 'your-resource-group'
+          azure_vm_name: 'your-vm-name'
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+```
+
+**Using Credential-based Authentication:**
+
 ```yaml
 name: Control Azure VM
 on: [workflow_dispatch]
@@ -106,7 +214,9 @@ jobs:
   with:
     azure_resource_group_name: 'my-runners-rg'
     azure_vm_name: 'github-runner-01'
-    azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     operation: 'start'  # This is the default
 ```
 
@@ -118,7 +228,9 @@ jobs:
   with:
     azure_resource_group_name: 'my-runners-rg'
     azure_vm_name: 'github-runner-01'
-    azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     operation: 'deallocate'
 ```
 
@@ -135,7 +247,9 @@ Control VMs based on workflow conditions:
   with:
     azure_resource_group_name: 'prod-runners'
     azure_vm_name: 'deployment-runner'
-    azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     operation: 'start'
 
 - name: Stop VM after deployment
@@ -144,7 +258,9 @@ Control VMs based on workflow conditions:
   with:
     azure_resource_group_name: 'prod-runners'
     azure_vm_name: 'deployment-runner'
-    azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     operation: 'deallocate'
 ```
 
@@ -158,14 +274,18 @@ Manage multiple VMs in a single workflow:
   with:
     azure_resource_group_name: 'runners-rg'
     azure_vm_name: 'runner-01'
-    azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
 - name: Start second VM
   uses: farooq-teqniqly/azure-vm-control@v1
   with:
     azure_resource_group_name: 'runners-rg'
     azure_vm_name: 'runner-02'
-    azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+    azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+    azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 ```
 
 ## Examples
@@ -177,6 +297,10 @@ A complete workflow that starts a VM, runs jobs on it, then deallocates it:
 ```yaml
 name: CI with Self-Hosted Runner
 on: [push, pull_request]
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
 
 jobs:
   start-runner:
@@ -190,7 +314,9 @@ jobs:
         with:
           azure_resource_group_name: 'github-runners'
           azure_vm_name: 'ubuntu-runner'
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: 'start'
 
   test:
@@ -214,7 +340,9 @@ jobs:
         with:
           azure_resource_group_name: 'github-runners'
           azure_vm_name: 'ubuntu-runner'
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: 'deallocate'
 ```
 
@@ -229,6 +357,10 @@ on:
     - cron: '0 9 * * 1-5'  # Start at 9 AM weekdays
     - cron: '0 18 * * 1-5' # Stop at 6 PM weekdays
 
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   control-vm:
     runs-on: ubuntu-latest
@@ -238,7 +370,9 @@ jobs:
         with:
           azure_resource_group_name: 'office-hours-runners'
           azure_vm_name: 'dev-runner'
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: ${{ github.event.schedule == '0 9 * * 1-5' && 'start' || 'deallocate' }}
 ```
 
@@ -255,6 +389,10 @@ Example workflow pattern:
 name: Performance Tests
 on: [workflow_dispatch]
 
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -264,7 +402,9 @@ jobs:
         with:
           azure_resource_group_name: 'perf-test-rg'
           azure_vm_name: 'perf-runner'
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: 'start'
 
   run-tests:
@@ -285,7 +425,9 @@ jobs:
         with:
           azure_resource_group_name: 'perf-test-rg'
           azure_vm_name: 'perf-runner'
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           operation: 'deallocate'
 ```
 
@@ -297,8 +439,13 @@ jobs:
 |-------|-------------|----------|---------|
 | `azure_resource_group_name` | Azure resource group containing the VM | Yes | - |
 | `azure_vm_name` | Name of the Azure Virtual Machine | Yes | - |
-| `azure_credentials` | Azure service principal credentials JSON | Yes | - |
+| `azure_credentials` | Azure service principal credentials JSON (for credential-based auth) | No* | - |
+| `azure_client_id` | Azure client ID for OIDC authentication | No* | - |
+| `azure_tenant_id` | Azure tenant ID for OIDC authentication | No* | - |
+| `azure_subscription_id` | Azure subscription ID for OIDC authentication | No* | - |
 | `operation` | VM operation: `start` or `deallocate` (blocking operations that wait for completion; may take several minutes with no configurable timeout) | No | `start` |
+
+*Either `azure_credentials` or all three OIDC inputs (`azure_client_id`, `azure_tenant_id`, `azure_subscription_id`) must be provided.
 
 ### Outputs
 

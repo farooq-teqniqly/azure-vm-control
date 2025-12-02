@@ -12,8 +12,17 @@ inputs:
     description: "Name of the Azure VM"
     required: true
   azure_credentials:
-    description: "Azure credentials JSON for azure/login"
-    required: true
+    description: "Azure credentials JSON for azure/login (for credential-based auth). Either this or OIDC inputs (azure_client_id, azure_tenant_id, azure_subscription_id) must be provided."
+    required: false
+  azure_client_id:
+    description: "Azure client ID for OIDC authentication"
+    required: false
+  azure_tenant_id:
+    description: "Azure tenant ID for OIDC authentication"
+    required: false
+  azure_subscription_id:
+    description: "Azure subscription ID for OIDC authentication"
+    required: false
   operation:
     description: "VM operation to perform: start or deallocate"
     required: false
@@ -22,7 +31,54 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Azure login
+    - name: Validate authentication inputs
+      id: auth-check
+      env:
+        INPUT_CLIENT_ID: ${{ inputs.azure_client_id }}
+        INPUT_TENANT_ID: ${{ inputs.azure_tenant_id }}
+        INPUT_SUBSCRIPTION_ID: ${{ inputs.azure_subscription_id }}
+        INPUT_AZURE_CREDENTIALS: ${{ inputs.azure_credentials }}
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        # Check if OIDC inputs are provided
+        OIDC_INPUTS_PROVIDED="false"
+        if [ -n "$INPUT_CLIENT_ID" ] && [ -n "$INPUT_TENANT_ID" ] && [ -n "$INPUT_SUBSCRIPTION_ID" ]; then
+          OIDC_INPUTS_PROVIDED="true"
+        fi
+
+        # Check if credentials input is provided
+        CREDS_PROVIDED="false"
+        if [ -n "$INPUT_AZURE_CREDENTIALS" ]; then
+          CREDS_PROVIDED="true"
+        fi
+
+        # Export as step outputs for use in subsequent step conditions
+        echo "oidc=$OIDC_INPUTS_PROVIDED" >> $GITHUB_OUTPUT
+        echo "creds=$CREDS_PROVIDED" >> $GITHUB_OUTPUT
+
+        # Validate that at least one authentication method is provided
+        if [ "$OIDC_INPUTS_PROVIDED" = "false" ] && [ "$CREDS_PROVIDED" = "false" ]; then
+          echo "Error: Either azure_credentials or OIDC inputs (azure_client_id, azure_tenant_id, azure_subscription_id) must be provided."
+          exit 1
+        fi
+
+        # Warn if both are provided (OIDC takes precedence)
+        if [ "$OIDC_INPUTS_PROVIDED" = "true" ] && [ "$CREDS_PROVIDED" = "true" ]; then
+          echo "Warning: Both OIDC inputs and azure_credentials provided. OIDC authentication will be used."
+        fi
+
+    - name: Azure login with OIDC
+      if: ${{ steps.auth-check.outputs.oidc == 'true' }}
+      uses: azure/login@8c334a195cbb38e46038007b304988d888bf676a
+      with:
+        client-id: ${{ inputs.azure_client_id }}
+        tenant-id: ${{ inputs.azure_tenant_id }}
+        subscription-id: ${{ inputs.azure_subscription_id }}
+
+    - name: Azure login with credentials
+      if: ${{ steps.auth-check.outputs.oidc != 'true' && steps.auth-check.outputs.creds == 'true' }}
       uses: azure/login@8c334a195cbb38e46038007b304988d888bf676a
       with:
         creds: ${{ inputs.azure_credentials }}

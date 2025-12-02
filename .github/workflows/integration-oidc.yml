@@ -1,0 +1,105 @@
+name: Azure VM Control integration OIDC
+
+on:
+  push:
+    branches: [main]
+
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+
+    # Avoid overlapping runs that both try to start/stop the same VM
+    concurrency:
+      group: integration-test
+      cancel-in-progress: false
+
+    env:
+      AZ_RG: ${{ secrets.AZURE_RESOURCE_GROUP_NAME }}
+      AZ_VM: ${{ secrets.AZURE_VM_NAME }}
+      AZ_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZ_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZ_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    steps:
+      - name: Validate required secrets
+        run: |
+          missing_inputs=()
+
+          if [ -z "${{env.AZ_RG}}" ]; then
+              missing_inputs+=("azure_resource_group_name")
+          fi
+
+          if [ -z "${{env.AZ_VM}}" ]; then
+              missing_inputs+=("azure_vm_name")
+          fi
+
+          if [ -z "${{env.AZ_CLIENT_ID}}" ]; then
+              missing_inputs+=("azure_client_id")
+          fi
+
+          if [ -z "${{env.AZ_TENANT_ID}}" ]; then
+              missing_inputs+=("azure_tenant_id")
+          fi
+
+          if [ -z "${{env.AZ_SUBSCRIPTION_ID}}" ]; then
+              missing_inputs+=("azure_subscription_id")
+          fi
+
+          if [ ${#missing_inputs[@]} -ne 0 ]; then
+              echo "Missing required inputs: ${missing_inputs[*]}"
+              echo "Please configure these inputs in your repository secrets."
+              exit 1
+          fi
+
+          echo "All required secrets are configured."
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start VM
+        uses: ./
+        with:
+          azure_resource_group_name: ${{ env.AZ_RG }}
+          azure_vm_name: ${{ env.AZ_VM }}
+          azure_client_id: ${{ env.AZ_CLIENT_ID }}
+          azure_tenant_id: ${{ env.AZ_TENANT_ID }}
+          azure_subscription_id: ${{ env.AZ_SUBSCRIPTION_ID }}
+          operation: start
+
+      - name: Deallocate VM
+        uses: ./
+        with:
+          azure_resource_group_name: ${{ env.AZ_RG }}
+          azure_vm_name: ${{ env.AZ_VM }}
+          azure_client_id: ${{ env.AZ_CLIENT_ID }}
+          azure_tenant_id: ${{ env.AZ_TENANT_ID }}
+          azure_subscription_id: ${{ env.AZ_SUBSCRIPTION_ID }}
+          operation: deallocate
+
+      - name: Verify VM is deallocated
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Checking final power state for $AZ_RG / $AZ_VM..."
+
+          state=$(az vm get-instance-view \
+            -g "${{env.AZ_RG}}" \
+            -n "${{env.AZ_VM}}" \
+            --query "instanceView.statuses[?starts_with(code,'PowerState/')].displayStatus" \
+            -o tsv)
+
+          echo "Final VM state: $state"
+
+          if [ "$state" != "VM deallocated" ]; then
+            echo "ERROR: Expected 'VM deallocated' but got '$state'"
+            exit 1
+          fi
+
+          echo "VM successfully deallocated ✅"
