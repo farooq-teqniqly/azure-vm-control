@@ -5,8 +5,6 @@
 [![Integration](https://github.com/farooq-teqniqly/azure-vm-control/actions/workflows/integration.yml/badge.svg)](https://github.com/farooq-teqniqly/azure-vm-control/actions/workflows/integration.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=farooq-teqniqly_azure-vm-control&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=farooq-teqniqly_azure-vm-control)
 
-
-
 A GitHub Action that automates starting and stopping Azure Virtual Machines, designed specifically for managing self-hosted runners in CI/CD pipelines.
 
 ## Table of Contents
@@ -38,12 +36,12 @@ Azure VM Control provides a simple, reliable way to start and deallocate Azure V
 - name: Start VM Runner
   uses: farooq-teqniqly/azure-vm-control@v1
   with:
-    azure_resource_group_name: 'my-resource-group'
-    azure_vm_name: 'my-runner-vm'
+    azure_resource_group_name: "my-resource-group"
+    azure_vm_name: "my-runner-vm"
     azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
     azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
     azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    operation: 'start'
+    operation: "start"
 ```
 
 **Using Credential-based Authentication:**
@@ -52,10 +50,10 @@ Azure VM Control provides a simple, reliable way to start and deallocate Azure V
 - name: Start VM Runner
   uses: farooq-teqniqly/azure-vm-control@v1
   with:
-    azure_resource_group_name: 'my-resource-group'
-    azure_vm_name: 'my-runner-vm'
+    azure_resource_group_name: "my-resource-group"
+    azure_vm_name: "my-runner-vm"
     azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-    operation: 'start'
+    operation: "start"
 ```
 
 ## Getting Started
@@ -106,12 +104,14 @@ az ad app federated-credential create --id $APP_OBJECT_ID --parameters '{
 ```
 
 > **Note:** Adjust the `subject` field based on your scenario:
+>
 > - For a specific branch: `repo:OWNER/REPO:ref:refs/heads/BRANCH`
 > - For pull requests: `repo:OWNER/REPO:pull_request`
 > - For an environment: `repo:OWNER/REPO:environment:ENVIRONMENT_NAME`
 > - For any branch: `repo:OWNER/REPO:ref:refs/heads/*`
 
 Alternatively, you can configure this in the Azure Portal:
+
 1. Navigate to Azure Active Directory > App registrations
 2. Find your service principal and select it
 3. Go to "Certificates & secrets" > "Federated credentials"
@@ -120,6 +120,7 @@ Alternatively, you can configure this in the Azure Portal:
 6. Configure the organization, repository, entity type, and branch name
 
 **Step 3: Store the following as GitHub secrets:**
+
 - `AZURE_CLIENT_ID` - Application (client) ID
 - `AZURE_TENANT_ID` - Directory (tenant) ID
 - `AZURE_SUBSCRIPTION_ID` - Your Azure subscription ID
@@ -128,7 +129,7 @@ Alternatively, you can configure this in the Azure Portal:
 
 ```yaml
 permissions:
-  id-token: write  # Required for OIDC
+  id-token: write # Required for OIDC
   contents: read
 ```
 
@@ -169,7 +170,7 @@ name: Control Azure VM
 on: [workflow_dispatch]
 
 permissions:
-  id-token: write  # Required for OIDC
+  id-token: write # Required for OIDC
   contents: read
 
 jobs:
@@ -179,8 +180,8 @@ jobs:
       - name: Control VM
         uses: farooq-teqniqly/azure-vm-control@v1
         with:
-          azure_resource_group_name: 'your-resource-group'
-          azure_vm_name: 'your-vm-name'
+          azure_resource_group_name: "your-resource-group"
+          azure_vm_name: "your-vm-name"
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -199,8 +200,8 @@ jobs:
       - name: Control VM
         uses: farooq-teqniqly/azure-vm-control@v1
         with:
-          azure_resource_group_name: 'your-resource-group'
-          azure_vm_name: 'your-vm-name'
+          azure_resource_group_name: "your-resource-group"
+          azure_vm_name: "your-vm-name"
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
 ```
 
@@ -212,12 +213,12 @@ jobs:
 - name: Start Azure VM
   uses: farooq-teqniqly/azure-vm-control@v1
   with:
-    azure_resource_group_name: 'my-runners-rg'
-    azure_vm_name: 'github-runner-01'
+    azure_resource_group_name: "my-runners-rg"
+    azure_vm_name: "github-runner-01"
     azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
     azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
     azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    operation: 'start'  # This is the default
+    operation: "start" # This is the default
 ```
 
 #### Stopping a VM
@@ -226,12 +227,12 @@ jobs:
 - name: Stop Azure VM
   uses: farooq-teqniqly/azure-vm-control@v1
   with:
-    azure_resource_group_name: 'my-runners-rg'
-    azure_vm_name: 'github-runner-01'
+    azure_resource_group_name: "my-runners-rg"
+    azure_vm_name: "github-runner-01"
     azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
     azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
     azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    operation: 'deallocate'
+    operation: "deallocate"
 ```
 
 ### Advanced Usage
@@ -245,23 +246,23 @@ Control VMs based on workflow conditions:
   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
   uses: farooq-teqniqly/azure-vm-control@v1
   with:
-    azure_resource_group_name: 'prod-runners'
-    azure_vm_name: 'deployment-runner'
+    azure_resource_group_name: "prod-runners"
+    azure_vm_name: "deployment-runner"
     azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
     azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
     azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    operation: 'start'
+    operation: "start"
 
 - name: Stop VM after deployment
   if: always()
   uses: farooq-teqniqly/azure-vm-control@v1
   with:
-    azure_resource_group_name: 'prod-runners'
-    azure_vm_name: 'deployment-runner'
+    azure_resource_group_name: "prod-runners"
+    azure_vm_name: "deployment-runner"
     azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
     azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
     azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    operation: 'deallocate'
+    operation: "deallocate"
 ```
 
 #### Multiple VM Management
@@ -272,8 +273,8 @@ Manage multiple VMs in a single workflow:
 - name: Start multiple VMs
   uses: farooq-teqniqly/azure-vm-control@v1
   with:
-    azure_resource_group_name: 'runners-rg'
-    azure_vm_name: 'runner-01'
+    azure_resource_group_name: "runners-rg"
+    azure_vm_name: "runner-01"
     azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
     azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
     azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -281,8 +282,8 @@ Manage multiple VMs in a single workflow:
 - name: Start second VM
   uses: farooq-teqniqly/azure-vm-control@v1
   with:
-    azure_resource_group_name: 'runners-rg'
-    azure_vm_name: 'runner-02'
+    azure_resource_group_name: "runners-rg"
+    azure_vm_name: "runner-02"
     azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
     azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
     azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -299,7 +300,7 @@ name: CI with Self-Hosted Runner
 on: [push, pull_request]
 
 permissions:
-  id-token: write  # Required for OIDC
+  id-token: write # Required for OIDC
   contents: read
 
 jobs:
@@ -312,12 +313,12 @@ jobs:
         id: start
         uses: farooq-teqniqly/azure-vm-control@v1
         with:
-          azure_resource_group_name: 'github-runners'
-          azure_vm_name: 'ubuntu-runner'
+          azure_resource_group_name: "github-runners"
+          azure_vm_name: "ubuntu-runner"
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          operation: 'start'
+          operation: "start"
 
   test:
     needs: start-runner
@@ -338,12 +339,12 @@ jobs:
       - name: Deallocate Runner VM
         uses: farooq-teqniqly/azure-vm-control@v1
         with:
-          azure_resource_group_name: 'github-runners'
-          azure_vm_name: 'ubuntu-runner'
+          azure_resource_group_name: "github-runners"
+          azure_vm_name: "ubuntu-runner"
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          operation: 'deallocate'
+          operation: "deallocate"
 ```
 
 ### Scheduled VM Control
@@ -354,11 +355,11 @@ Use with scheduled workflows for cost optimization:
 name: Daily VM Management
 on:
   schedule:
-    - cron: '0 9 * * 1-5'  # Start at 9 AM weekdays
-    - cron: '0 18 * * 1-5' # Stop at 6 PM weekdays
+    - cron: "0 9 * * 1-5" # Start at 9 AM weekdays
+    - cron: "0 18 * * 1-5" # Stop at 6 PM weekdays
 
 permissions:
-  id-token: write  # Required for OIDC
+  id-token: write # Required for OIDC
   contents: read
 
 jobs:
@@ -368,8 +369,8 @@ jobs:
       - name: Control VM
         uses: farooq-teqniqly/azure-vm-control@v1
         with:
-          azure_resource_group_name: 'office-hours-runners'
-          azure_vm_name: 'dev-runner'
+          azure_resource_group_name: "office-hours-runners"
+          azure_vm_name: "dev-runner"
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -382,15 +383,16 @@ This action is used in real-world projects to automatically start VMs before run
 
 - [**tq-results**](https://github.com/farooq-teqniqly/tq-results) - Performance testing results and analysis
 - [**tq-sluggo**](https://github.com/farooq-teqniqly/tq-sluggo) - Performance testing framework
+- [**tq-arbiter-core**](https://github.com/farooq-teqniqly/tq-arbiter-core) - Mediator library for .NET applications
 
-Example workflow pattern:
+  Example workflow pattern:
 
 ```yaml
 name: Performance Tests
 on: [workflow_dispatch]
 
 permissions:
-  id-token: write  # Required for OIDC
+  id-token: write # Required for OIDC
   contents: read
 
 jobs:
@@ -400,12 +402,12 @@ jobs:
       - name: Start Performance Test VM
         uses: farooq-teqniqly/azure-vm-control@v1
         with:
-          azure_resource_group_name: 'perf-test-rg'
-          azure_vm_name: 'perf-runner'
+          azure_resource_group_name: "perf-test-rg"
+          azure_vm_name: "perf-runner"
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          operation: 'start'
+          operation: "start"
 
   run-tests:
     needs: setup
@@ -423,29 +425,29 @@ jobs:
       - name: Deallocate Test VM
         uses: farooq-teqniqly/azure-vm-control@v1
         with:
-          azure_resource_group_name: 'perf-test-rg'
-          azure_vm_name: 'perf-runner'
+          azure_resource_group_name: "perf-test-rg"
+          azure_vm_name: "perf-runner"
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          operation: 'deallocate'
+          operation: "deallocate"
 ```
 
 ## API Reference
 
 ### Inputs
 
-| Input | Description | Required | Default |
-|-------|-------------|----------|---------|
-| `azure_resource_group_name` | Azure resource group containing the VM | Yes | - |
-| `azure_vm_name` | Name of the Azure Virtual Machine | Yes | - |
-| `azure_credentials` | Azure service principal credentials JSON (for credential-based auth) | No* | - |
-| `azure_client_id` | Azure client ID for OIDC authentication | No* | - |
-| `azure_tenant_id` | Azure tenant ID for OIDC authentication | No* | - |
-| `azure_subscription_id` | Azure subscription ID for OIDC authentication | No* | - |
-| `operation` | VM operation: `start` or `deallocate` (blocking operations that wait for completion; may take several minutes with no configurable timeout) | No | `start` |
+| Input                       | Description                                                                                                                                 | Required | Default |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
+| `azure_resource_group_name` | Azure resource group containing the VM                                                                                                      | Yes      | -       |
+| `azure_vm_name`             | Name of the Azure Virtual Machine                                                                                                           | Yes      | -       |
+| `azure_credentials`         | Azure service principal credentials JSON (for credential-based auth)                                                                        | No\*     | -       |
+| `azure_client_id`           | Azure client ID for OIDC authentication                                                                                                     | No\*     | -       |
+| `azure_tenant_id`           | Azure tenant ID for OIDC authentication                                                                                                     | No\*     | -       |
+| `azure_subscription_id`     | Azure subscription ID for OIDC authentication                                                                                               | No\*     | -       |
+| `operation`                 | VM operation: `start` or `deallocate` (blocking operations that wait for completion; may take several minutes with no configurable timeout) | No       | `start` |
 
-*Either `azure_credentials` or all three OIDC inputs (`azure_client_id`, `azure_tenant_id`, `azure_subscription_id`) must be provided.
+\*Either `azure_credentials` or all three OIDC inputs (`azure_client_id`, `azure_tenant_id`, `azure_subscription_id`) must be provided.
 
 ### Outputs
 
